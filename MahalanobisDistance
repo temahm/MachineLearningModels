@@ -1,0 +1,33 @@
+"""
+Best for: multivariate anomaly detection where features are correlated.
+Example: temperature, pressure, vibration, and current together define “normal.”
+Real-life fit: fraud detection, industrial process control, correlated sensor monitoring.
+"""
+
+
+import numpy as np
+import pandas as pd
+from scipy.spatial.distance import mahalanobis
+from scipy.stats import chi2
+
+df = pd.read_csv("process_sensor_data.csv")
+
+features = ["temperature", "pressure", "vibration", "current"]
+X = df[features].values
+
+mean = np.mean(X, axis=0)
+cov = np.cov(X, rowvar=False)
+inv_cov = np.linalg.inv(cov)
+
+distances = np.array([
+    mahalanobis(row, mean, inv_cov)
+    for row in X
+])
+
+# Threshold based on chi-square distribution
+threshold = np.sqrt(chi2.ppf(0.99, df=len(features)))
+
+df["mahalanobis_distance"] = distances
+df["anomaly"] = distances > threshold
+
+print(df[df["anomaly"]])

@@ -1,0 +1,30 @@
+"""
+Matrix Profile
+Best for: time-series anomaly detection and repeated pattern discovery.
+STUMPY computes Matrix Profile, which stores the z-normalized distance between 
+subsequences and their nearest neighbors.
+Real-life fit: machine vibration, pump cycles, energy consumption motifs, healthcare waveforms.
+"""
+
+
+import pandas as pd
+import stumpy
+import numpy as np
+
+df = pd.read_csv("machine_vibration_timeseries.csv")
+
+series = df["vibration"].values
+window_size = 50
+
+matrix_profile = stumpy.stump(series, m=window_size)
+
+# First column contains matrix profile values
+profile_values = matrix_profile[:, 0].astype(float)
+
+threshold = np.percentile(profile_values, 99)
+
+df["matrix_profile_anomaly"] = False
+df.loc[:len(profile_values)-1, "matrix_profile_score"] = profile_values
+df.loc[df["matrix_profile_score"] > threshold, "matrix_profile_anomaly"] = True
+
+print(df[df["matrix_profile_anomaly"]])

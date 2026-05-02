@@ -1,0 +1,23 @@
+"""
+Decision Tree — best simple explainable rules
+Use when: stakeholders need to see “why” the decision was made.
+Real-life fit: maintenance triage, compliance decision support, operator guidance, early prototype models.
+"""
+
+from sklearn.tree import DecisionTreeClassifier, export_text
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+import pandas as pd
+
+df = pd.read_csv("equipment_failure.csv")
+
+X = df[["temperature", "vibration", "oil_pressure", "runtime_hours"]]
+y = df["failure_next_7_days"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+
+model = DecisionTreeClassifier(max_depth=4, random_state=42)
+model.fit(X_train, y_train)
+
+print(classification_report(y_test, model.predict(X_test)))
+print(export_text(model, feature_names=list(X.columns)))

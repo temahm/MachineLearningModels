@@ -1,0 +1,43 @@
+"""
+Autoencoder
+Best for: nonlinear anomaly detection in high-dimensional data.
+Real-life fit: complex sensor systems, logs, industrial IoT, medical signals.
+
+"""
+
+
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
+df = pd.read_csv("sensor_data_normal.csv")
+
+X = df[["temperature", "pressure", "vibration", "current", "humidity"]].values
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+X_train, X_test = train_test_split(X_scaled, test_size=0.2, random_state=42)
+
+input_dim = X_train.shape[1]
+
+autoencoder = tf.keras.Sequential([
+    tf.keras.layers.Input(shape=(input_dim,)),
+    tf.keras.layers.Dense(8, activation="relu"),
+    tf.keras.layers.Dense(3, activation="relu"),
+    tf.keras.layers.Dense(8, activation="relu"),
+    tf.keras.layers.Dense(input_dim, activation="linear")
+])
+
+autoencoder.compile(optimizer="adam", loss="mse")
+autoencoder.fit(X_train, X_train, epochs=50, batch_size=32, validation_split=0.1)
+
+reconstructions = autoencoder.predict(X_test)
+errors = np.mean(np.square(X_test - reconstructions), axis=1)
+
+threshold = np.percentile(errors, 95)
+anomalies = errors > threshold
+
+print("Anomalies detected:", np.sum(anomalies))

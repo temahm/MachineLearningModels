@@ -1,0 +1,24 @@
+"""
+Best for: when you mostly have normal examples and want to detect deviations.
+Real-life fit: quality systems where failure examples are rare.
+"""
+
+
+import pandas as pd
+from sklearn.svm import OneClassSVM
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+df = pd.read_csv("normal_machine_behavior.csv")
+
+X = df[["temperature", "vibration", "current", "pressure"]]
+
+model = Pipeline([
+    ("scaler", StandardScaler()),
+    ("ocsvm", OneClassSVM(kernel="rbf", nu=0.03, gamma="scale"))
+])
+
+df["prediction"] = model.fit_predict(X)
+df["anomaly"] = df["prediction"] == -1
+
+print(df[df["anomaly"]])

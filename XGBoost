@@ -1,0 +1,36 @@
+"""
+XGBoost — best general-purpose tabular model
+Use when: you have structured data: machine temperature, vibration, operator, shift, material lot, prior failures, etc.
+Best for: manufacturing defect prediction, fraud, healthcare readmission risk, energy equipment failure.
+In real life: XGBoost is usually a strong first choice for business, industrial, healthcare, and energy tabular datasets because 
+it handles nonlinear patterns, feature interactions, missing values, and mixed numerical/categorical engineered features very well.
+"""
+
+
+import pandas as pd
+from xgboost import XGBClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+df = pd.read_csv("manufacturing_quality.csv")
+
+X = df[["temperature", "pressure", "vibration", "runtime_hours", "shift_id"]]
+y = df["defect"]  # 1 = defective, 0 = good
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+model = XGBClassifier(
+    n_estimators=300,
+    max_depth=4,
+    learning_rate=0.05,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    eval_metric="logloss"
+)
+
+model.fit(X_train, y_train)
+
+pred = model.predict(X_test)
+print(classification_report(y_test, pred))

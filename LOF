@@ -1,0 +1,26 @@
+"""
+Local Outlier Factor / LOF
+Best for: detecting local anomalies inside clustered data.
+Real-life fit: different machines, shifts, patients, or customer groups where “normal” 
+depends on the local cluster.
+"""
+
+
+import pandas as pd
+from sklearn.neighbors import LocalOutlierFactor
+from sklearn.preprocessing import StandardScaler
+
+df = pd.read_csv("clustered_operations.csv")
+
+X = df[["temperature", "vibration", "speed", "load"]]
+X_scaled = StandardScaler().fit_transform(X)
+
+model = LocalOutlierFactor(
+    n_neighbors=20,
+    contamination=0.03
+)
+
+df["prediction"] = model.fit_predict(X_scaled)
+df["anomaly"] = df["prediction"] == -1
+
+print(df[df["anomaly"]])
